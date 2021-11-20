@@ -1,0 +1,52 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<div class="about">
+    <div class="about-me">
+        <h2>@ViewBag.Title.</h2>
+        <h3>@ViewBag.Message</h3>
+
+        <p>I'm passionate about Software Programming and problem - solving with a good experience in ASP.NET development.
+            Very good at analysis and development stages in development life - cycle.</p>
+        <p>Military Service: Exempted</p>
+    </div>
+
+    <div class="profile">
+        <div class="profile-picture">
+            <img src="~/Images/profile.jpg" alt="Profile Picture"/>
+        </div>
+    </div>
+</div>
+
+<style>
+    .about {
+        overflow: hidden;
+    }
+
+    p {
+        margin-bottom: 0px;
+    }
+
+    .about-me {
+        width: 50%;
+        float: left;
+    }
+
+    .profile {
+        width: 50%;
+        float: right;
+    }
+
+    .profile-picture {
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #ccc;
+        float: right;
+    }
+
+    img {
+        height: auto;
+        width: 100%;
+        max-height: 250px;
+    }
+</style>

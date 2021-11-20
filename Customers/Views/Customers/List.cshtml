@@ -1,0 +1,181 @@
+﻿@model List<Customers.Models.Customer>
+@{
+    ViewBag.Title = "List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>List Customers</h2>
+
+<a class="btn btn-secondary" style="margin-bottom: 25px;" href="@Url.Action("Add", "Customers")">
+    NEW CUSTOMER
+</a>
+
+<div class="items grid-view">
+    @foreach (var customer in Model)
+    {
+        <div class="item same-height card text-white bg-primary mb-3">
+            <i class="fa fa-trash" data-customer-id="@customer.CustomerID"></i>
+            <p data-href="@Url.Action("Update", "Customers", new { id = customer.CustomerID }, null)" class="customer-name card-header">@customer.CustomerFirstName @customer.CustomerLastName</p>
+            <div class="show-more">
+                <i class="fa fas fa-plus fa-lg"></i>
+                <span class="show-addresses">Show @customer.CustomerFirstName's Addresses</span>
+            </div>
+            <ul class="addresses card-body">
+                @foreach (var address in customer.Addresses)
+                {
+                    <li class="card-text">@address.Addrxss</li>
+                }
+             </ul>
+        </div>
+    }
+</div>
+@* :nth-child(odd) *@
+<style>
+    .items {
+        margin: 30px auto;
+        overflow: hidden;
+    }
+
+   .items.grid-view .item {
+      width: 49.5%;
+      float: left;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .items.grid-view .item:nth-child(odd) {
+      margin-right: 1%;
+    }
+
+    .items.grid-view .item p {
+        padding-top: 15px;
+        padding-bottom: 18px
+    }
+
+    .items.grid-view .item .show-more {
+        padding: 10px;
+        background-color: #eee;
+        cursor: pointer;
+    }
+
+    .items.grid-view .item span {
+        margin-left: 5px;
+    }
+
+    .items.grid-view .item .addresses {
+        padding: 10px;
+        padding-left: 25px;
+        display: none;
+        list-style: georgian;
+    }
+
+    .items.grid-view .item .show-more {
+        color: #325172;
+    }
+
+    .items.grid-view .item .addresses li:not(:last-child) {
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    .same-height {
+        overflow: hidden;
+        margin: 10px auto;
+    }
+
+    .customer-name {
+        font-size: 18px;
+        text-align: center;
+    }
+
+    .fa-trash {
+        font-weight: 900;
+        text-align: center;
+        padding: 10px;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+        background-color: rgb(198 0 0 / 0.40);
+        border-radius: 5px;
+    }
+
+    .fa-trash:hover {
+        color: red;
+    }
+
+    .item p {
+        cursor: pointer;
+    }
+
+    .item p:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const rows = document.querySelectorAll(".item p[data-href]");
+
+        rows.forEach(row => {
+            row.addEventListener("click", () => {
+                window.location.href = row.dataset.href;
+            });
+        });
+    });
+
+
+    $('.items .item .show-more').click(function () {
+        $(this).nextAll('ul').slideToggle();
+        $(this).find("i").toggleClass('fa-plus fa-minus');
+    });
+
+    function adjustElements(elements) {
+        let maxHeight = 0;
+        $(elements).each(function () {
+            if ($(this).innerHeight() > maxHeight) {
+                maxHeight = $(this).innerHeight();
+            }
+        });
+
+        $(elements).innerHeight(maxHeight);
+    }
+    adjustElements('.same-height p');
+    adjustElements('.same-height .show-more');
+
+
+    $(".item").on("click", "i.fa-trash", function () {
+        var obj = $(this);
+
+        Swal.fire({
+            title: '<strong>Are you sure you want to delete this customer?</strong>',
+            html: "<p>You won't be able to revert this!</p>",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire(
+                    'Deleted!',
+                    'Customer has been deleted.',
+                    'success'
+                )
+                $.ajax({
+                    url: "/Customers/DeleteCustomer/" + obj.data('customer-id'),
+                    method: "POST",
+                    success: function () {
+                        obj.parent(".item").fadeOut(250);
+                        obj.parent(".item").remove();
+                    },
+                });
+            } else {
+                console.log("CANCELED");
+            }
+        });
+    });
+</script>

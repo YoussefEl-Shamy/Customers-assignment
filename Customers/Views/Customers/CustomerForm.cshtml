@@ -1,0 +1,214 @@
+﻿@model Customers.Models.Customer
+@{
+    ViewBag.Title = "Add";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (Model.CustomerID == 0)
+{
+    <h2>New Customer</h2>
+}
+else
+{
+    <h2>Edit Customer</h2>
+}
+
+@using (Html.BeginForm("Save", "Customers"))
+{
+    @Html.ValidationSummary(true, "Please Fix The Following Errors.")
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.CustomerFirstName)
+        @Html.TextBoxFor(m => m.CustomerFirstName, new { @class = "form-control", @placeholder = "Enter Customer First Name" })
+        @Html.ValidationMessageFor(m => m.CustomerFirstName)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.CustomerLastName)
+        @Html.TextBoxFor(m => m.CustomerLastName, new { @class = "form-control", @placeholder = "Enter Customer Last Name" })
+        @Html.ValidationMessageFor(m => m.CustomerLastName)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.CustomerEmail)
+        @Html.TextBoxFor(m => m.CustomerEmail, new { @class = "form-control", @placeholder = "Enter Customer Email" })
+        @Html.ValidationMessageFor(m => m.CustomerEmail)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.CustomerDOB)
+        @Html.TextBoxFor(m => m.CustomerDOB,
+            new { 
+                @class = "form-control",
+                @placeholder = "Enter Customer Birthdate",
+                @Value = Model.CustomerID == 0? "" : Model.CustomerDOB.ToString("dd MMM yyyy") })
+        @Html.ValidationMessageFor(m => m.CustomerDOB)
+    </div>
+
+    <div class="addresses-container form-group">
+        @Html.Label("Addresses")
+        <br />
+        <input name="writtenAddress" class="add-address form-control" type="text" placeholder="Enter Your Address" />
+        <span class='addresses-error-message'></span>
+        <br />
+        <span>Separate the addresses with "#"</span>
+        <div class="addresses">
+            @if (Model.Addresses != null)
+            {
+                foreach (var address in Model.Addresses)
+                {
+                    <span data-address-id="@address.AddressID" class="address old-address"><i class="fa fa-times"></i>  @address.Addrxss </span>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="form-group" style="font-weight:bold">
+        @Html.LabelFor(m => m.Gender)
+        @Html.DropDownListFor(m => m.Gender, new List<SelectListItem>
+        {
+            new SelectListItem{Text="Male", Value="m"},
+            new SelectListItem{Text="Female", Value="f"},
+        }, "Select Gender", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Gender)
+    </div>
+
+    @Html.HiddenFor(m => m.CustomerID);
+    @Html.AntiForgeryToken()
+
+    <button type="submit" class="btn btn-primary" style="border-radius:10px;margin-top:10px">Submit</button>
+}
+
+<style>
+    .form-group {
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+        .form-group:first-child {
+            margin-top: 30px;
+        }
+
+    .addresses {
+        width: 100%;
+        height: auto;
+    }
+
+    .address {
+        border-radius: 3px;
+        padding: 5px 7px;
+        margin-right: 5px;
+        margin-top: 5px;
+        display: inline-block;
+        color: #6f6f6f;
+        background-color: #dedede;
+    }
+
+    .address i {
+        margin-right: 7px;
+        cursor: pointer;
+        color: #969696;
+    }
+
+    .address i:hover {
+        color: #000;
+    }
+
+    .add-address {
+        display: inline-block;
+    }
+
+    .addresses-error-message {
+        display: none;
+        right: 8px;
+        top: 5px;
+        font-size: 12px;
+        color: #fff;
+        background-color: rgba(231, 76, 60, 0.8);
+        padding: 7px 10px;
+        margin-left: 15px;
+        border-radius: 2px;
+    }
+</style>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script>
+    let addresses = [];
+    let jsonAddresses;
+
+    let oldDeletedAddressesIDs = [];
+    let jsonOldDeletedAddressesIDs;
+
+    function updateAddresses() {
+        jsonAddresses = JSON.stringify({ 'addresses': addresses });
+        $.ajax({
+            url: "/Customers/UpdateAddresses/",
+            method: "POST",
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: jsonAddresses
+        }).done(function () {
+            console.log("Done 2");
+        }).fail(function () {
+            console.log("Failed 2");
+        });
+    }
+
+    function deleteOldAddresses() {
+        jsonOldDeletedAddressesIDs = JSON.stringify({ 'addressesIDs': oldDeletedAddressesIDs });
+        $.ajax({
+            url: "/Customers/deleteOldAddresses/",
+            method: "POST",
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: jsonOldDeletedAddressesIDs
+        }).done(function () {
+            console.log("Done 2");
+        }).fail(function () {
+            console.log("Failed 2");
+        });
+    }
+
+    $('.add-address').on('keyup', function () {
+        if ($(this).val().slice($(this).val().length - 1, $(this).val().length) == '#') {
+            if ($(this).val().charAt(0) == '#') {
+                $(this).val('');
+                $('.addresses-error-message')
+                    .text('Address cannot start with #')
+                    .fadeIn().delay(3500)
+                    .fadeOut();
+            } else {
+                let address = $(this).val().slice(0, -1);
+                if (!addresses.includes(address)) {
+                    addresses.push(address);
+                    console.log(addresses);
+                    updateAddresses();
+                    $('.addresses').append('<span class="address new-address"><i class="fa fa-times"></i>' + address + '</span>');
+                } else {
+                    $('.addresses-error-message')
+                        .text('Exist')
+                        .fadeIn().delay(2500)
+                        .fadeOut();
+                }
+
+                $(this).val('');
+            }
+        }
+    });
+
+    $('.addresses').on('click', '.address.new-address i', function () {
+        for (let i = 0; i < addresses.length; i++) {
+            if (addresses[i] === $(this).parent().text()) {
+                addresses.splice(i, 1);
+            }
+        }
+        updateAddresses();
+        $(this).parent('.address').remove();
+    });
+
+    $('.addresses').on('click', '.address.old-address i', function () {
+        oldDeletedAddressesIDs.push($(this).parent('.address.old-address').data('address-id'));
+        deleteOldAddresses();
+        $(this).parent('.address').remove();
+    });
+</script>
